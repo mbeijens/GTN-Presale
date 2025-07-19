@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GTN Presale</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+<body>
+  <h1>GreenToken (GTN) Presale</h1>
+  <p>1 ETH = 100,000 GTN</p>
+  <button onclick="connectWallet()">Connect Wallet</button><br><br>
+  <input type="number" id="ethAmount" placeholder="Amount in ETH">
+  <button onclick="buyTokens()">Buy GTN</button><br><br>
+  <button onclick="claimTokens()">Claim GTN</button>
+  <p id="status"></p>
+
+  <script>
+    const presaleAddress = "0xB2Cd34E56Fa78901BbCcDdEeF2345678901BcDeF"; // vervang met echte
+    const abi = [{"inputs": [], "name": "buyTokens", "outputs": [], "stateMutability": "payable", "type": "function"}, {"inputs": [], "name": "claimTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function"}];
+
+    let web3;
+    let presale;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        web3 = new Web3(window.ethereum);
+        presale = new web3.eth.Contract(abi, presaleAddress);
+        document.getElementById("status").innerText = "Wallet connected!";
+      } else {
+        alert("Please install MetaMask.");
+      }
+    }
+
+    async function buyTokens() {
+      const accounts = await web3.eth.getAccounts();
+      const amount = document.getElementById("ethAmount").value;
+      try {
+        await web3.eth.sendTransaction({
+          from: accounts[0],
+          to: presaleAddress,
+          value: web3.utils.toWei(amount, "ether")
+        });
+        document.getElementById("status").innerText = "Transaction sent!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Error: " + err.message;
+      }
+    }
+
+    async function claimTokens() {
+      const accounts = await web3.eth.getAccounts();
+      try {
+        await presale.methods.claimTokens().send({ from: accounts[0] });
+        document.getElementById("status").innerText = "Tokens claimed!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
