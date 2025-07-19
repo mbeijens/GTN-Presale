@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GTN Presale</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 30px; background: #f7fff7; color: #222; text-align: center; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+    #status { margin-top: 20px; color: green; }
+  </style>
+</head>
+<body>
+  <h1>GreenToken (GTN) Presale</h1>
+  <p>Network: Polygon Amoy | Rate: 1 ETH = 100,000 GTN</p>
+  <button onclick="connectWallet()">🔌 Connect Wallet</button><br><br>
+  <input type="number" id="ethAmount" placeholder="Amount in ETH" step="0.01" />
+  <button onclick="buyTokens()">💸 Buy GTN</button><br><br>
+  <button onclick="claimTokens()">🎁 Claim GTN</button>
+  <p id="status">Status: waiting...</p>
+
+  <script>
+    const presaleAddress = "0xB2Cd34E56Fa78901BbCcDdEeF2345678901BcDeF";
+    const abi = [{"inputs": [], "name": "buyTokens", "outputs": [], "stateMutability": "payable", "type": "function"}, {"inputs": [], "name": "claimTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function"}];
+
+    let web3;
+    let presale;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          web3 = new Web3(window.ethereum);
+          presale = new web3.eth.Contract(abi, presaleAddress);
+          document.getElementById("status").innerText = "✅ Wallet connected!";
+        } catch (err) {
+          document.getElementById("status").innerText = "❌ Wallet connection failed.";
+        }
+      } else {
+        alert("MetaMask not found. Please install MetaMask.");
+      }
+    }
+
+    async function buyTokens() {
+      if (!web3) return alert("Please connect wallet first.");
+      const accounts = await web3.eth.getAccounts();
+      const amount = document.getElementById("ethAmount").value;
+      try {
+        await web3.eth.sendTransaction({
+          from: accounts[0],
+          to: presaleAddress,
+          value: web3.utils.toWei(amount, "ether")
+        });
+        document.getElementById("status").innerText = "✅ GTN purchase sent!";
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Purchase failed: " + err.message;
+      }
+    }
+
+    async function claimTokens() {
+      if (!web3) return alert("Please connect wallet first.");
+      const accounts = await web3.eth.getAccounts();
+      try {
+        await presale.methods.claimTokens().send({ from: accounts[0] });
+        document.getElementById("status").innerText = "✅ GTN claimed!";
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Claim failed: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
